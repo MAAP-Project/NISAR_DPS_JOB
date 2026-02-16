@@ -2,46 +2,57 @@ cwlVersion: v1.2
 class: CommandLineTool
 
 label: nisar_access_subset
-baseCommand: [python, /opt/app/app/nisar_access_subset.py]
+baseCommand: [python, /opt/app/nisar_access_subset.py]
 
 inputs:
   access_mode:
     type: string
     inputBinding: { prefix: --access_mode }
-    default: s3
+    default: auto
 
-  var:
+  https_href:
+    type: string?
+    inputBinding: { prefix: --https_href }
+
+  s3_href:
+    type: string?
+    inputBinding: { prefix: --s3_href }
+
+  vars:
     type: string
-    inputBinding: { prefix: --var }
+    inputBinding: { prefix: --vars }
     default: HHHH
 
-  row0:
-    type: int
-    inputBinding: { prefix: --row0 }
-    default: 0
-  row1:
-    type: int
-    inputBinding: { prefix: --row1 }
-    default: 1024
-  col0:
-    type: int
-    inputBinding: { prefix: --col0 }
-    default: 0
-  col1:
-    type: int
-    inputBinding: { prefix: --col1 }
-    default: 1024
+  group:
+    type: string
+    inputBinding: { prefix: --group }
+    default: /science/LSAR/GCOV/grids/frequencyA
+
+  bbox:
+    type: string?
+    inputBinding: { prefix: --bbox }
+
+  bbox_crs:
+    type: string?
+    inputBinding: { prefix: --bbox_crs }
 
   out_dir:
     type: string
     inputBinding: { prefix: --out_dir }
     default: /tmp/output
 
+  out_name:
+    type: string
+    inputBinding: { prefix: --out_name }
+    default: nisar_subset.zarr
+
 outputs:
-  subset_npy:
+  zarr_store:
+    type: Directory
+    outputBinding:
+      glob: "/tmp/output/nisar_subset.zarr"
+
+  manifest:
     type: File
     outputBinding:
-      glob: "/tmp/output/*.npy"
-
-requirements:
-  InlineJavascriptRequirement: {}
+      glob: "/tmp/output/manifest.json"
