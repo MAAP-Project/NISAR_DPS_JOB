@@ -5,4 +5,5 @@ fsspec
 h5py
 numpy
 xarray
-h5netcdf
+zarr
+numcodecs
