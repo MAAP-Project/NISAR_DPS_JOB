@@ -9,7 +9,6 @@ import h5py
 import xarray as xr
 import earthaccess
 
-
 DEFAULT_GROUP = "/science/LSAR/GCOV/grids/frequencyA"
 DEFAULT_X = f"{DEFAULT_GROUP}/xCoordinates"
 DEFAULT_Y = f"{DEFAULT_GROUP}/yCoordinates"
@@ -25,47 +24,78 @@ def parse_args():
     )
 
     # --- How to identify the granule ---
-    p.add_argument("--https_href", default="", help="HTTPS href to the HDF5 granule (preferred if running outside MAAP).")
-    p.add_argument("--s3_href", default="", help="Direct S3 href to the HDF5 granule (preferred inside MAAP ADE/DPS).")
+    p.add_argument(
+        "--https_href",
+        default="",
+        help="HTTPS href to the HDF5 granule (preferred if running outside MAAP).",
+    )
+    p.add_argument(
+        "--s3_href",
+        default="",
+        help="Direct S3 href to the HDF5 granule (preferred inside MAAP ADE/DPS).",
+    )
 
-    # Optional: fallback discovery if hrefs not supplied
+    # Optional: fallback discovery if hrefs not supplied (interactive; not ideal for DPS)
     p.add_argument("--short_name", default="NISAR_L2_GCOV_BETA_V1")
     p.add_argument("--count", type=int, default=10)
     p.add_argument("--granule_index", type=int, default=0)
 
     # --- Access mode ---
-    p.add_argument("--access_mode", choices=["auto", "s3", "https"], default="auto",
-                   help="auto prefers s3 if available, else https.")
-    p.add_argument("--asf_s3_creds_url", default="https://nisar.asf.earthdatacloud.nasa.gov/s3credentials",
-                   help="ASF S3 credentials endpoint for MAAP temp creds (used for S3 streaming).")
+    p.add_argument(
+        "--access_mode",
+        choices=["auto", "s3", "https"],
+        default="auto",
+        help="auto prefers s3 if available, else https.",
+    )
+    p.add_argument(
+        "--asf_s3_creds_url",
+        default="https://nisar.asf.earthdatacloud.nasa.gov/s3credentials",
+        help="ASF S3 credentials endpoint for MAAP temp creds (used for S3 streaming).",
+    )
 
     # --- What to extract ---
-    p.add_argument("--group", default=DEFAULT_GROUP,
-                   help="Base group containing GCOV variables, e.g. /science/LSAR/GCOV/grids/frequencyA")
-    p.add_argument("--vars", default="HHHH",
-                   help="Comma-separated list of variable dataset names inside --group (e.g., HHHH,HVHV,VVVV).")
+    p.add_argument(
+        "--group",
+        default=DEFAULT_GROUP,
+        help="Base group containing GCOV variables, e.g. /science/LSAR/GCOV/grids/frequencyA",
+    )
+    p.add_argument(
+        "--vars",
+        default="HHHH",
+        help="Comma-separated list of variable dataset names inside --group (e.g., HHHH,HVHV,VVVV).",
+    )
 
     # Coordinate datasets
     p.add_argument("--x_path", default=DEFAULT_X)
     p.add_argument("--y_path", default=DEFAULT_Y)
 
     # --- Optional spatial bbox subset ---
-    p.add_argument("--bbox", default="",
-                   help="Optional bbox as 'minx,miny,maxx,maxy' in SAME CRS/units as xCoordinates/yCoordinates.")
-    p.add_argument("--bbox_crs", default="",
-                   help="Optional CRS label for bbox (e.g., EPSG:32615). Stored as metadata only for now.")
+    p.add_argument(
+        "--bbox",
+        default="",
+        help="Optional bbox as 'minx,miny,maxx,maxy' in SAME CRS/units as xCoordinates/yCoordinates.",
+    )
+    p.add_argument(
+        "--bbox_crs",
+        default="",
+        help="Optional CRS label for bbox (e.g., EPSG:32615). Stored as metadata only for now.",
+    )
 
     # --- Output ---
     p.add_argument("--out_dir", default=os.environ.get("OUTPUT_DIR", "/tmp/output"))
-    p.add_argument("--out_name", default="nisar_subset.zarr",
-                   help="Name of the output Zarr directory (written under --out_dir).")
+    p.add_argument(
+        "--out_name",
+        default="nisar_subset.zarr",
+        help="Name of the output Zarr directory (written under --out_dir).",
+    )
 
     return p.parse_args()
 
 
 def resolve_granule_hrefs(args) -> Tuple[str, str]:
     """
-    Returns (https_href, s3_href). If not provided, uses earthaccess search fallback.
+    Returns (https_href, s3_href).
+    If not provided, uses earthaccess search fallback (interactive; avoid in DPS).
     """
     https_href = args.https_href.strip()
     s3_href = args.s3_href.strip()
@@ -73,49 +103,58 @@ def resolve_granule_hrefs(args) -> Tuple[str, str]:
     if https_href or s3_href:
         return https_href, s3_href
 
-    # Fallback discovery (matches MAAP NISAR tutorial pattern)
-    earthaccess.login()
+    # Fallback discovery (interactive; not ideal for DPS)
+    try:
+        earthaccess.login()
+    except Exception as e:
+        raise RuntimeError(
+            "No --https_href/--s3_href provided, and Earthdata login/search fallback failed. "
+            "For DPS runs, pass --https_href or --s3_href explicitly."
+        ) from e
+
     results = earthaccess.search_data(
         short_name=args.short_name,
         count=args.count,
         cloud_hosted=True,
     )
     if not results:
-        raise RuntimeError("No granules found in search fallback. Provide --https_href/--s3_href from driver notebook.")
+        raise RuntimeError(
+            "No granules found in search fallback. Provide --https_href/--s3_href from a driver notebook."
+        )
 
     g = results[args.granule_index]
 
-    # https external
     https_links = g.data_links()
     https_href = https_links[0] if https_links else ""
 
-    # direct S3
     s3_links = g.data_links(access="direct")
     s3_href = s3_links[0] if s3_links else ""
 
     if not https_href and not s3_href:
-        raise RuntimeError("Could not resolve any hrefs for granule. Provide --https_href/--s3_href explicitly.")
+        raise RuntimeError(
+            "Could not resolve any hrefs for granule. Provide --https_href/--s3_href explicitly."
+        )
     return https_href, s3_href
 
 
 def open_file_like(access_mode: str, https_href: str, s3_href: str, asf_s3_creds_url: str):
     """
     Returns (file_obj, h5py_driver_kwds, chosen_mode, chosen_href).
-    Uses the same cloud-optimized caching knobs described in the MAAP NISAR access tutorial.
+    Uses cloud-optimized caching knobs described in the MAAP NISAR access tutorial.
     """
-    # fsspec cache and HDF5 driver tuning (cloud-friendly)
     fsspec_params = {"cache_type": "blockcache", "block_size": 8 * 1024 * 1024}
     h5py_driver_kwds = {"page_buf_size": 16 * 1024 * 1024, "rdcc_nbytes": 4 * 1024 * 1024}
 
     def open_https():
         if not https_href:
-            raise RuntimeError("HTTPS href not available. Provide --https_href or allow search fallback to find one.")
+            raise RuntimeError("HTTPS href not available. Provide --https_href.")
+        # HTTPS session is authenticated via earthaccess (Earthdata Login)
         fs = earthaccess.get_fsspec_https_session()
         return fs.open(https_href, mode="rb", **fsspec_params), "https", https_href
 
     def open_s3():
         if not s3_href:
-            raise RuntimeError("S3 href not available. Provide --s3_href or allow search fallback to find one.")
+            raise RuntimeError("S3 href not available. Provide --s3_href.")
         from maap.maap import MAAP
         import s3fs
 
@@ -129,10 +168,8 @@ def open_file_like(access_mode: str, https_href: str, s3_href: str, asf_s3_creds
         )
         return fs_s3.open(s3_href, mode="rb", **fsspec_params), "s3", s3_href
 
-    # Decide mode
     mode = access_mode
     if mode == "auto":
-        # Prefer S3 if provided, else HTTPS
         mode = "s3" if s3_href else "https"
 
     if mode == "s3":
@@ -158,32 +195,24 @@ def bbox_to_slices(x: np.ndarray, y: np.ndarray, bbox: Tuple[float, float, float
 
     Assumptions:
     - xCoordinates and yCoordinates are 1D arrays aligned to dataset dims (y,x).
-    - bbox is in same CRS/units as x/y. If bbox is lon/lat but x/y are projected meters,
-      UWG transform info is needed later (your note).
+    - bbox is in same CRS/units as x/y.
     """
     minx, miny, maxx, maxy = bbox
-
-    # Ensure 1D
     x = np.asarray(x).ravel()
     y = np.asarray(y).ravel()
 
-    # Handle monotonic (typical grids)
     x_asc = x[0] < x[-1]
     y_asc = y[0] < y[-1]
 
-    # X indices where minx<=x<=maxx
     if x_asc:
         x0 = int(np.searchsorted(x, minx, side="left"))
         x1 = int(np.searchsorted(x, maxx, side="right"))
     else:
-        # descending
         x0 = int(np.searchsorted(x[::-1], maxx, side="left"))
         x1 = int(np.searchsorted(x[::-1], minx, side="right"))
-        # convert back to original indexing
         n = len(x)
         x0, x1 = n - x1, n - x0
 
-    # Y indices where miny<=y<=maxy
     if y_asc:
         y0 = int(np.searchsorted(y, miny, side="left"))
         y1 = int(np.searchsorted(y, maxy, side="right"))
@@ -193,7 +222,6 @@ def bbox_to_slices(x: np.ndarray, y: np.ndarray, bbox: Tuple[float, float, float
         n = len(y)
         y0, y1 = n - y1, n - y0
 
-    # Clamp to valid range
     x0 = max(0, min(len(x), x0))
     x1 = max(0, min(len(x), x1))
     y0 = max(0, min(len(y), y0))
@@ -205,14 +233,26 @@ def bbox_to_slices(x: np.ndarray, y: np.ndarray, bbox: Tuple[float, float, float
     return slice(y0, y1), slice(x0, x1)
 
 
+def _available_datasets_under_group(f: h5py.File, group_path: str) -> List[str]:
+    grp = f.get(group_path)
+    if grp is None:
+        return []
+    available: List[str] = []
+
+    def _walk(name, obj):
+        if isinstance(obj, h5py.Dataset):
+            available.append(name.split("/")[-1])
+
+    grp.visititems(_walk)
+    return sorted(set(available))
+
+
 def main():
     args = parse_args()
     os.makedirs(args.out_dir, exist_ok=True)
 
-    # Resolve hrefs (driver notebook can supply these directly)
     https_href, s3_href = resolve_granule_hrefs(args)
 
-    # Open file-like object with streaming + caching knobs
     file_obj, driver_kwds, chosen_mode, chosen_href = open_file_like(
         args.access_mode, https_href, s3_href, args.asf_s3_creds_url
     )
@@ -223,9 +263,8 @@ def main():
 
     bbox = parse_bbox(args.bbox)
 
-    # Read requested vars + coords (optionally sliced)
     with h5py.File(file_obj, "r", driver_kwds=driver_kwds) as f:
-        # Read coords
+        # coords
         x = f[args.x_path][()]
         y = f[args.y_path][()]
 
@@ -242,11 +281,15 @@ def main():
         for vn in var_names:
             dpath = f"{args.group}/{vn}"
             if dpath not in f:
+                avail = _available_datasets_under_group(f, args.group)
+                if avail:
+                    raise KeyError(
+                        f"Dataset not found: {dpath}. Available under {args.group}: {avail[:80]}"
+                    )
                 raise KeyError(f"Dataset not found: {dpath}")
             arr = f[dpath][yslice, xslice]
             data_vars[vn] = (("y", "x"), arr)
 
-    # Build xarray Dataset and write Zarr intermediate
     ds = xr.Dataset(
         data_vars=data_vars,
         coords={
@@ -265,15 +308,12 @@ def main():
     )
 
     out_path = os.path.join(args.out_dir, args.out_name)
-    # Overwrite if exists (clean DPS reruns)
     if os.path.exists(out_path):
-        # Zarr is a directory store
         import shutil
         shutil.rmtree(out_path)
 
     ds.to_zarr(out_path, mode="w")
 
-    # Also write a small JSON manifest for downstream steps
     manifest = {
         "out_zarr": out_path,
         "source_href": chosen_href,
