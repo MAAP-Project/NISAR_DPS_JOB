@@ -2,15 +2,13 @@ cwlVersion: v1.2
 class: CommandLineTool
 
 label: nisar_access_subset
-
-# Make sure your Dockerfile copies repo to /app (WORKDIR /app; COPY . /app)
-baseCommand: [python, /app/nisar_access_subset.py]
+baseCommand: [python, /opt/app/nisar_access_subset.py]
 
 inputs:
   access_mode:
     type: string
     inputBinding: { prefix: --access_mode }
-    default: https
+    default: auto
 
   https_href:
     type: string?
@@ -58,6 +56,3 @@ outputs:
     type: File
     outputBinding:
       glob: $(inputs.out_dir + "/manifest.json")
-
-requirements:
-  InlineJavascriptRequirement: {}
