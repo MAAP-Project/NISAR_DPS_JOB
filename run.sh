@@ -1,4 +1,3 @@
-# !/usr/bin/env bash
+#!/usr/bin/env bash
 set -euo pipefail
-
-python /opt/app/app/nisar_access_subset.py "$@"
+python /opt/nisar_access_subset.py "$@"
