@@ -1,11 +1,11 @@
 # NISAR_DPS_JOB (GCOV Access + Subset)
-
-This repo packages a MAAP DPS algorithm that:
-1) Discovers a NISAR L2 GCOV Beta granule using earthaccess,
-2) Opens the same granule via either:
-   - direct S3 streaming (MAAP ADE/DPS using maap-py temp creds), or
-   - authenticated HTTPS streaming (portable earthaccess flow),
-3) Reads a small window from a selected covariance variable (e.g., HHHH),
-4) Writes a NumPy output to the DPS output directory.
-
-Based on the MAAP "NISAR Access and Exploration" tutorial.
+    algo_id="nisar_access_subset",
+    version="main",
+    queue="maap-dps-worker-8gb",
+    access_mode="https",
+    vars="HHHH",
+    https_href="https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001.h5",
+    s3_href="s3://sds-n-cumulus-prod-nisar-products/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001.h5",
+    bbox="",
+    bbox_crs="",
+    out_name="nisar_subset.zarr")
