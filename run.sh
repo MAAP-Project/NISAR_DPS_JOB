@@ -5,7 +5,8 @@ echo "[run.sh] Starting NISAR subset job..."
 echo "[run.sh] Args: $*"
 
 # Always ensure output dir exists (matches CWL defaults)
-OUT_DIR="${OUTPUT_DIR:-/tmp/output}"
+# Write outputs into the job working directory so HySDS publishes them to S3
+OUT_DIR="${OUTPUT_DIR:-$PWD}"
 mkdir -p "$OUT_DIR"
 
 PY="/opt/app/nisar_access_subset.py"
