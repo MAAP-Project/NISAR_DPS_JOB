@@ -36,10 +36,11 @@ inputs:
     type: string?
     inputBinding: { prefix: --bbox_crs }
 
+  # Write outputs to the CWL job output directory by default (publishable by HySDS)
   out_dir:
     type: string
     inputBinding: { prefix: --out_dir }
-    default: /tmp/output
+    default: $(runtime.outdir)
 
   out_name:
     type: string
@@ -47,12 +48,14 @@ inputs:
     default: nisar_subset.zarr
 
 outputs:
+  # Outputs are written under out_dir (default: runtime.outdir),
+  # so glob can be relative/publish-friendly.
   zarr_store:
     type: Directory
     outputBinding:
-      glob: $(inputs.out_dir + "/" + inputs.out_name)
+      glob: $(inputs.out_name)
 
   manifest:
     type: File
     outputBinding:
-      glob: $(inputs.out_dir + "/manifest.json")
+      glob: manifest.json
