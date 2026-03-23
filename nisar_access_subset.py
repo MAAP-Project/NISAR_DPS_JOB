@@ -73,8 +73,10 @@ def parse_args():
     p.add_argument(
         "--vars",
         default="HHHH",
-        help="Comma-separated list of variable dataset names inside --group "
-             "(e.g., HHHH,HVHV,VVVV).",
+        help=(
+            "Comma-separated list of variable dataset names inside --group "
+            "(e.g., HHHH,HVHV,VVVV)."
+        ),
     )
 
     # Coordinate datasets
@@ -116,6 +118,12 @@ def parse_args():
     args.bbox_crs = (args.bbox_crs or "").strip()
     args.out_dir = (args.out_dir or "").strip()
     args.out_name = (args.out_name or "nisar_subset.zarr").strip()
+
+    # Normalize Hub/UI placeholder values to empty strings
+    for attr in ["bbox", "bbox_crs", "https_href", "s3_href"]:
+        val = getattr(args, attr, "")
+        if val in {"none", "None", "null", "NULL", '""', "''"}:
+            setattr(args, attr, "")
 
     return args
 
@@ -167,7 +175,8 @@ def resolve_granule_hrefs(args) -> Tuple[str, str]:
 
 
 def parse_bbox(bbox_str: str) -> Optional[Tuple[float, float, float, float]]:
-    if not (bbox_str or "").strip():
+    bbox_str = (bbox_str or "").strip()
+    if not bbox_str:
         return None
 
     parts = _split_csv(bbox_str)
