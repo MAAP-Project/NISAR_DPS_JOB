@@ -50,7 +50,7 @@ inputs:
   - name: out_name
     label: out_name
     doc: out_name
-    type: File
+    type: string
     default: nisar_subset.zarr
 
 outputs:
