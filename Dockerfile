@@ -1,19 +1,6 @@
-FROM python:3.11-slim
+FROM mas.maap-project.org/root/maap-workspaces/custom_images/maap_base:v4.2.0
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    libhdf5-dev \
-    && rm -rf /var/lib/apt/lists/*
+COPY . /opt/app
+RUN chmod +x /opt/app/run.sh /opt/app/build.sh
 
-WORKDIR /app
-
-COPY requirements.txt /app/requirements.txt
-RUN pip install --no-cache-dir -r /app/requirements.txt
-
-# copy your repo contents into /app
-COPY . /app
-
-# make run.sh executable
-RUN chmod +x /app/run.sh
-
-ENTRYPOINT ["/app/run.sh"]
+ENTRYPOINT ["/opt/app/run.sh"]
