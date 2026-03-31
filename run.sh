@@ -1,22 +1,39 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "[run.sh] Starting NISAR subset job..."
-echo "[run.sh] Args: $*"
+basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+PY='conda run --live-stream -p /opt/conda/envs/nisar_access_subset python'
 
-OUT_DIR="${USER_OUTPUT_DIR:-${OUTPUT_DIR:-output}}"
-mkdir -p "$OUT_DIR"
+mkdir -p output
 
-PY="/opt/app/nisar_access_subset.py"
-if [[ ! -f "$PY" ]]; then
-  echo "[run.sh] ERROR: Missing $PY"
-  exit 2
-fi
+ACCESS_MODE="${1:-auto}"
+HTTPS_HREF="${2:-}"
+S3_HREF="${3:-}"
+VARS="${4:-HHHH}"
+GROUP="${5:-/science/LSAR/GCOV/grids/frequencyA}"
+BBOX="${6:-}"
+BBOX_CRS="${7:-}"
+OUT_NAME="${8:-nisar_subset.zarr}"
 
-python "$PY" "$@"
+ARGS=(
+  "--access_mode" "${ACCESS_MODE}"
+  "--vars" "${VARS}"
+  "--group" "${GROUP}"
+  "--out_dir" "output"
+  "--out_name" "${OUT_NAME}"
+)
 
-echo "[run.sh] Listing outputs in $OUT_DIR"
-ls -lah "$OUT_DIR" || true
-find "$OUT_DIR" -maxdepth 3 -print || true
+[[ -n "${HTTPS_HREF}" ]] && ARGS+=("--https_href" "${HTTPS_HREF}")
+[[ -n "${S3_HREF}" ]] && ARGS+=("--s3_href" "${S3_HREF}")
+[[ -n "${BBOX}" ]] && ARGS+=("--bbox" "${BBOX}")
+[[ -n "${BBOX_CRS}" ]] && ARGS+=("--bbox_crs" "${BBOX_CRS}")
 
-echo "[run.sh] Done."
+logfile="_nisar-access-subset.log"
+
+set -x
+${PY} "${basedir}/nisar_access_subset.py" "${ARGS[@]}" 2>"${logfile}"
+cp -v _stderr.txt _stdout.txt output/ 2>/dev/null || true
+mv -v "${logfile}" output/
+set +x
+
+find output -maxdepth 3 -print || true
