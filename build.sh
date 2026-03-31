@@ -1,26 +1,16 @@
-#!/bin/bash
-set -ex
+#!/usr/bin/env bash
+set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+ENV_PREFIX="/opt/conda/envs/nisar_access_subset"
 
-mkdir -p /opt/app
+conda env create -f "${basedir}/env.yml" --prefix "${ENV_PREFIX}"
+conda clean -afy
 
-cp -v "$SCRIPT_DIR/nisar_access_subset.py" /opt/app/nisar_access_subset.py
-cp -v "$SCRIPT_DIR/nisar_access_subset.cwl" /opt/app/nisar_access_subset.cwl
-cp -v "$SCRIPT_DIR/run.sh" /opt/app/run.sh
+conda run -p "${ENV_PREFIX}" python - <<'PY'
+import earthaccess, h5py, numpy, s3fs, xarray, zarr
+from maap.maap import MAAP
+print("Conda env OK")
+PY
 
-chmod 755 /opt/app/nisar_access_subset.py
-chmod 755 /opt/app/run.sh
-
-mamba install -y -c conda-forge \
-  earthaccess \
-  h5py \
-  h5netcdf \
-  xarray \
-  zarr \
-  s3fs \
-  fsspec \
-  numpy \
-  pip
-
-pip install maap-py
+echo "Built conda env at ${ENV_PREFIX}"
