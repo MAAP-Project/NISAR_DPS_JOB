@@ -9,8 +9,5 @@ conda clean -afy
 
 conda run -p "${ENV_PREFIX}" python - <<'PY'
 import earthaccess, h5py, numpy, s3fs, xarray, zarr
-from maap.maap import MAAP
 print("Conda env OK")
 PY
-
-echo "Built conda env at ${ENV_PREFIX}"
