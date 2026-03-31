@@ -1,6 +1,7 @@
 cwlVersion: v1.2
 class: CommandLineTool
 label: nisar_access_subset
+
 baseCommand:
   - python
   - /opt/app/nisar_access_subset.py
@@ -12,17 +13,11 @@ inputs:
     inputBinding:
       prefix: --access_mode
   https_href:
-    type:
-      - "null"
-      - string
-    default: ""
+    type: string?
     inputBinding:
       prefix: --https_href
   s3_href:
-    type:
-      - "null"
-      - string
-    default: ""
+    type: string?
     inputBinding:
       prefix: --s3_href
   vars:
@@ -36,24 +31,13 @@ inputs:
     inputBinding:
       prefix: --group
   bbox:
-    type:
-      - "null"
-      - string
-    default: ""
+    type: string?
     inputBinding:
       prefix: --bbox
   bbox_crs:
-    type:
-      - "null"
-      - string
-    default: ""
+    type: string?
     inputBinding:
       prefix: --bbox_crs
-  out_dir:
-    type: string
-    default: $(runtime.outdir)
-    inputBinding:
-      prefix: --out_dir
   out_name:
     type: string
     default: nisar_subset.zarr
@@ -61,11 +45,7 @@ inputs:
       prefix: --out_name
 
 outputs:
-  zarr_store:
+  out:
     type: Directory
     outputBinding:
-      glob: $(inputs.out_name)
-  manifest:
-    type: File
-    outputBinding:
-      glob: manifest.json
+      glob: output
