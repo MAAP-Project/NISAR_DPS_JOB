@@ -29,3 +29,17 @@ The job supports three access modes:
 - `auto`  
   Prefers S3 first, then HTTPS only if non-interactive Earthaccess credentials are available.
 
+
+`https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001.h5 `
+
+
+
+` s3://sds-n-cumulus-prod-nisar-products/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_002_109_D_063_4005_DHDH_A_20251012T182508_20251012T182531_X05010_N_P_J_001/NISAR_L2_PR_GCOV_002_109_D_063_4005_DHDH_A_20251012T182508_20251012T182531_X05010_N_P_J_001.h5 `
+`
+
+`access_mode = s3`
+`vars = HHHH`
+`group = /science/LSAR/GCOV/grids/frequencyA`
+`bbox = 148325,5392805,519115,5759995`
+`bbox_crs = EPSG:32633`
+`out_name = nisar_subset.zarr`
