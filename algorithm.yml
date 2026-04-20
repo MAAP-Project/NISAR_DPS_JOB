@@ -24,11 +24,13 @@ inputs:
     label: https_href
     doc: https_href
     type: string
+    default: "https://nisar.asf.earthdatacloud.nasa.gov/NISAR/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001.h5"
 
   - name: s3_href
     label: s3_href
     doc: s3_href
     type: string
+    default: "s3://sds-n-cumulus-prod-nisar-products/NISAR_L2_GCOV_BETA_V1/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001/NISAR_L2_PR_GCOV_003_005_D_077_4005_DHDH_A_20251017T132451_20251017T132526_X05007_N_F_J_001.h5"
 
   - name: short_name
     label: short_name
@@ -52,7 +54,7 @@ inputs:
     label: asf_s3_creds_url
     doc: asf_s3_creds_url
     type: string
-    default: https://nisar.asf.earthdatacloud.nasa.gov/s3credentials
+    default: "https://nisar.asf.earthdatacloud.nasa.gov/s3credentials"
 
   - name: vars
     label: vars
@@ -82,11 +84,13 @@ inputs:
     label: bbox
     doc: bbox
     type: string
+    default: "750000,2450000,800000,2500000"
 
   - name: bbox_crs
     label: bbox_crs
     doc: bbox_crs
     type: string
+    default: EPSG:32643
 
   - name: out_name
     label: out_name
