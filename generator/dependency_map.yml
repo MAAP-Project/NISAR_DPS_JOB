@@ -1,1 +1,20 @@
+argparse: null
+json: null
+os: null
+sys: null
+pathlib: null
+datetime: null
 
+numpy: numpy
+xarray: xarray
+zarr: zarr
+h5py: h5py
+h5netcdf: h5netcdf
+fsspec: fsspec
+s3fs: s3fs
+requests: requests
+earthaccess: earthaccess
+pyproj: pyproj
+maap: maap-py
+boto3: boto3
+botocore: botocore
