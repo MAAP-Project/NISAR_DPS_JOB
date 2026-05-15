@@ -1,1 +1,37 @@
+name: nisar_access_subset
+version: main
+target: ogc_dps
+entrypoint: nisar_access_subset.py
 
+base_container: mas.maap-project.org/root/maap-workspaces/custom_images/maap_base:v5.0.0
+
+inputs:
+  access_mode:
+    type: string
+    default: s3
+  s3_href:
+    type: string
+    default: ""
+  https_href:
+    type: string
+    default: ""
+  vars:
+    type: string
+    default: HHHH
+  group:
+    type: string
+    default: /science/LSAR/GCOV/grids/frequencyA
+  bbox:
+    type: string
+    default: ""
+  bbox_crs:
+    type: string
+    default: ""
+  out_name:
+    type: string
+    default: nisar_subset.zarr
+
+outputs:
+  output:
+    type: directory
+    path: output
