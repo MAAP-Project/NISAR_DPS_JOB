@@ -2,6 +2,11 @@
 set -euo pipefail
 
 basedir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+
+# Ensure entry scripts are executable in the built OGC/DPS image.
+# (Job fails with exit 126 if /app/NISAR_DPS_JOB/run.sh is not +x.)
+chmod +x "${basedir}/run.sh" "${basedir}/build.sh"
+
 ENV_PREFIX="/opt/conda/envs/nisar_access_subset"
 
 conda env remove -p "${ENV_PREFIX}" -y || true
