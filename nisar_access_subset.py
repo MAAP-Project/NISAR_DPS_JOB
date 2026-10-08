@@ -81,7 +81,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--access_mode", choices=["auto", "s3", "https"], default="auto")
     parser.add_argument("--https_href", default="")
     parser.add_argument("--s3_href", default="")
-    parser.add_argument("--short_name", default="NISAR_L2_GCOV_BETA_V1")
+    parser.add_argument("--short_name", default="NISAR_L2_GCOV_PROVISIONAL_V1")
     parser.add_argument("--count", type=int, default=10)
     parser.add_argument("--granule_index", type=int, default=0)
     parser.add_argument("--asf_s3_creds_url", default=DEFAULT_ASF_S3_CREDS_URL)
